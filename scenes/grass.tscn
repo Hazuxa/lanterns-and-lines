@@ -1,0 +1,17 @@
+[gd_scene format=3 uid="uid://cwbmopaw22pig"]
+
+[ext_resource type="Texture2D" uid="uid://djjyfofy4wf3w" path="res://assets/nature/grass_tuft_wide.png" id="1_e1kak"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_jgklr"]
+size = Vector2(10, 1)
+
+[node name="Grass" type="StaticBody2D" unique_id=455754017]
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1762360755]
+z_index = -1
+texture = ExtResource("1_e1kak")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1289727991]
+position = Vector2(0, 2.5)
+shape = SubResource("RectangleShape2D_jgklr")
+disabled = true

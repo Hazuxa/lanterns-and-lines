@@ -106,12 +106,17 @@ animations = [{
 }]
 
 [node name="TallGrass" type="Area2D" unique_id=1987585847]
+y_sort_enabled = true
 script = ExtResource("1_r1hy0")
 
 [node name="SunShadow" type="Sprite2D" parent="." unique_id=793481276 node_paths=PackedStringArray("source")]
-position = Vector2(0, 3)
+position = Vector2(0, 1)
 script = ExtResource("2_0t1lf")
 source = NodePath("../AnimatedSprite2D")
+auto_bottom = null
+circle_scale = null
+circle_squash = null
+circle_width = null
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=2003574840]
 position = Vector2(0, -3)
@@ -120,4 +125,5 @@ shape = SubResource("RectangleShape2D_sx8g2")
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=949624365]
 sprite_frames = SubResource("SpriteFrames_p8o78")
 animation = &"idle"
+autoplay = "idle"
 offset = Vector2(0, -12)

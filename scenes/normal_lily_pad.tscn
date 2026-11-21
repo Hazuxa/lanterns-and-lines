@@ -1,0 +1,75 @@
+[gd_scene format=3 uid="uid://cnulf1vlnhtyp"]
+
+[ext_resource type="Texture2D" uid="uid://b3dm4daq2w46e" path="res://assets/nature/water_decor/lily_pad_anim_8f.png" id="1_7m6di"]
+[ext_resource type="Script" uid="uid://2qi86tq5b8e4" path="res://scripts/normal_lily_pad.gd" id="2_fixt6"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_fixt6"]
+atlas = ExtResource("1_7m6di")
+region = Rect2(0, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_u6slk"]
+atlas = ExtResource("1_7m6di")
+region = Rect2(16, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mlsgj"]
+atlas = ExtResource("1_7m6di")
+region = Rect2(32, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_dduit"]
+atlas = ExtResource("1_7m6di")
+region = Rect2(48, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_hbetk"]
+atlas = ExtResource("1_7m6di")
+region = Rect2(64, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_epwdy"]
+atlas = ExtResource("1_7m6di")
+region = Rect2(80, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_6euk7"]
+atlas = ExtResource("1_7m6di")
+region = Rect2(96, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_iim0m"]
+atlas = ExtResource("1_7m6di")
+region = Rect2(112, 0, 16, 16)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_jgklr"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_fixt6")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_u6slk")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_mlsgj")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_dduit")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_hbetk")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_epwdy")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_6euk7")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_iim0m")
+}],
+"loop": 1,
+"name": &"default",
+"speed": 8.0
+}]
+
+[node name="normal_lily_pad" type="AnimatedSprite2D" unique_id=1255807270]
+z_index = -1
+sprite_frames = SubResource("SpriteFrames_jgklr")
+autoplay = "default"
+frame_progress = 0.09623189
+script = ExtResource("2_fixt6")

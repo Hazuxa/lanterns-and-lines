@@ -1,0 +1,56 @@
+[gd_scene format=3 uid="uid://bp45gn2uqd48c"]
+
+[ext_resource type="Script" uid="uid://eqy2lr55byft" path="res://scripts/tree.gd" id="1_viusy"]
+[ext_resource type="Script" uid="uid://bke0wey4ys7jg" path="res://scripts/sun_shadow.gd" id="1_vplca"]
+[ext_resource type="Texture2D" uid="uid://c125fogu4e04r" path="res://assets/nature/grass_tuft_tiny.png" id="2_ake3r"]
+[ext_resource type="Texture2D" uid="uid://bvd8e5e7vdde2" path="res://assets/nature/dirt_patch_small.png" id="2_viusy"]
+[ext_resource type="Texture2D" uid="uid://d2ku44qlkfkwa" path="res://assets/nature/tree_round_bigger.png" id="3_viusy"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_jgklr"]
+size = Vector2(10, 1)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_viusy"]
+size = Vector2(32, 34)
+
+[node name="Tree" type="StaticBody2D" unique_id=149395104]
+script = ExtResource("1_viusy")
+
+[node name="Shadow" type="Sprite2D" parent="." unique_id=965110331 node_paths=PackedStringArray("source")]
+position = Vector2(0, -2)
+script = ExtResource("1_vplca")
+source = NodePath("../Sprite")
+auto_bottom = null
+circle_scale = null
+circle_squash = null
+circle_width = null
+
+[node name="GrassTuftTiny2" type="Sprite2D" parent="." unique_id=1510314314]
+z_index = -1
+y_sort_enabled = true
+position = Vector2(4, -4)
+texture = ExtResource("2_ake3r")
+
+[node name="DirtPatchSmall" type="Sprite2D" parent="." unique_id=710701748]
+z_index = -1
+position = Vector2(0, -2)
+texture = ExtResource("2_viusy")
+
+[node name="Sprite" type="Sprite2D" parent="." unique_id=696202017]
+position = Vector2(2, -34)
+texture = ExtResource("3_viusy")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1594957124]
+position = Vector2(0, -4.5)
+shape = SubResource("RectangleShape2D_jgklr")
+
+[node name="Canopy" type="Area2D" parent="." unique_id=1184764520]
+z_index = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Canopy" unique_id=624766443]
+position = Vector2(1, -39)
+shape = SubResource("RectangleShape2D_viusy")
+
+[node name="GrassTuftTiny" type="Sprite2D" parent="." unique_id=16313336]
+z_index = -1
+position = Vector2(-6, -2)
+texture = ExtResource("2_ake3r")

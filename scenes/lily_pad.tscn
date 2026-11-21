@@ -1,0 +1,76 @@
+[gd_scene format=3 uid="uid://bd4h1cotc2s3l"]
+
+[ext_resource type="Texture2D" uid="uid://dmvga8bxk4dkf" path="res://assets/nature/water_decor/lily_pad_pink_anim_8f.png" id="1_mjfoc"]
+[ext_resource type="Script" uid="uid://bqff8vnvasamq" path="res://scripts/lily_pad.gd" id="2_5qnqs"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5qnqs"]
+atlas = ExtResource("1_mjfoc")
+region = Rect2(0, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ewbmy"]
+atlas = ExtResource("1_mjfoc")
+region = Rect2(16, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vksh4"]
+atlas = ExtResource("1_mjfoc")
+region = Rect2(32, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_wsemg"]
+atlas = ExtResource("1_mjfoc")
+region = Rect2(48, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_hqls6"]
+atlas = ExtResource("1_mjfoc")
+region = Rect2(64, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_kquy1"]
+atlas = ExtResource("1_mjfoc")
+region = Rect2(80, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_s85sl"]
+atlas = ExtResource("1_mjfoc")
+region = Rect2(96, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_e2p56"]
+atlas = ExtResource("1_mjfoc")
+region = Rect2(112, 0, 16, 16)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_jgklr"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_5qnqs")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ewbmy")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_vksh4")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_wsemg")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_hqls6")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_kquy1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_s85sl")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_e2p56")
+}],
+"loop": 1,
+"name": &"lilypadanim",
+"speed": 8.0
+}]
+
+[node name="LilyPad" type="AnimatedSprite2D" unique_id=230525541]
+z_index = -1
+sprite_frames = SubResource("SpriteFrames_jgklr")
+animation = &"lilypadanim"
+autoplay = "lilypadanim"
+frame_progress = 0.4886091
+script = ExtResource("2_5qnqs")

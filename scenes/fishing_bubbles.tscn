@@ -1,0 +1,73 @@
+[gd_scene format=3 uid="uid://dneyds81mxeoe"]
+
+[ext_resource type="Texture2D" uid="uid://cdymjtig5e6dj" path="res://assets/nature/water_decor/fishing_spot_bubbles_anim_8f.png" id="1_jbo0r"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_jbo0r"]
+atlas = ExtResource("1_jbo0r")
+region = Rect2(0, 0, 24, 20)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vtb1w"]
+atlas = ExtResource("1_jbo0r")
+region = Rect2(24, 0, 24, 20)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ans2a"]
+atlas = ExtResource("1_jbo0r")
+region = Rect2(48, 0, 24, 20)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_58pem"]
+atlas = ExtResource("1_jbo0r")
+region = Rect2(72, 0, 24, 20)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_3kjk3"]
+atlas = ExtResource("1_jbo0r")
+region = Rect2(96, 0, 24, 20)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_332o3"]
+atlas = ExtResource("1_jbo0r")
+region = Rect2(120, 0, 24, 20)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_xcu4s"]
+atlas = ExtResource("1_jbo0r")
+region = Rect2(144, 0, 24, 20)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_jfohf"]
+atlas = ExtResource("1_jbo0r")
+region = Rect2(168, 0, 24, 20)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_p8o78"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_jbo0r")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_vtb1w")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ans2a")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_58pem")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_3kjk3")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_332o3")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xcu4s")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_jfohf")
+}],
+"loop": 1,
+"name": &"default",
+"speed": 8.0
+}]
+
+[node name="Bubbles" type="AnimatedSprite2D" unique_id=1187138295]
+z_index = -1
+sprite_frames = SubResource("SpriteFrames_p8o78")
+autoplay = "default"
+frame_progress = 0.078991696
