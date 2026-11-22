@@ -4,9 +4,13 @@
 [ext_resource type="Script" uid="uid://bke0wey4ys7jg" path="res://scripts/sun_shadow.gd" id="2_0t1lf"]
 [ext_resource type="Texture2D" uid="uid://xdk5ygy6sqo2" path="res://assets/nature/grass_tufts/grass_tuft_big_idle_8f.png" id="2_r1hy0"]
 [ext_resource type="Texture2D" uid="uid://3kvtu45wo2hn" path="res://assets/nature/grass_tufts/grass_tuft_big_rustle_4f.png" id="3_0t1lf"]
+[ext_resource type="Shader" uid="uid://bf7kqayt3im1m" path="res://shader/grass_wind.gdshader" id="3_6toal"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_sx8g2"]
 size = Vector2(14, 6)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_dss4m"]
+shader = ExtResource("3_6toal")
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_6toal"]
 atlas = ExtResource("2_r1hy0")
@@ -119,6 +123,7 @@ position = Vector2(0, -3)
 shape = SubResource("RectangleShape2D_sx8g2")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=949624365]
+material = SubResource("ShaderMaterial_dss4m")
 sprite_frames = SubResource("SpriteFrames_p8o78")
 animation = &"idle"
 autoplay = "idle"

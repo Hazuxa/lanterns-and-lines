@@ -130,6 +130,12 @@ func _stand_still(delta: float) -> void:
 	if idle_timer >= IDLE_DELAY:
 		idle_timer = 0.0
 		playing_special = true
+		sprite.play(_pick_special_idle())
+
+	idle_timer += delta
+	if idle_timer >= IDLE_DELAY:
+		idle_timer = 0.0
+		playing_special = true
 		sprite.play(SPECIAL_IDLES.pick_random())
 
 
@@ -194,3 +200,17 @@ func _sync_rod(delta: float) -> void:
 func set_rod(held_tex: Texture2D, back_tex: Texture2D) -> void:
 	rod_held.texture = held_tex
 	rod_back.texture = back_tex
+## picks a special idle that fits the time of day
+
+func _pick_special_idle() -> String:
+	var options := ["blink", "look_around"]          # these can happen any time
+	var dn := get_tree().get_first_node_in_group("day_night")
+	if dn:
+		var t: float = dn.time_of_day
+		if dn.is_night():
+			options.append("yawn")                   # sleepy at night
+			options.append("yawn")                   # (added twice = yawns more often at night)
+		elif t > 0.42 and t < 0.62:
+			options.append("sweat")                  # hot around noon
+			options.append("sweat")
+	return options.pick_random()
