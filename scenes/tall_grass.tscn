@@ -85,7 +85,7 @@ animations = [{
 }],
 "loop": 1,
 "name": &"idle",
-"speed": 6.0
+"speed": 0.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -113,10 +113,6 @@ script = ExtResource("1_r1hy0")
 position = Vector2(0, 1)
 script = ExtResource("2_0t1lf")
 source = NodePath("../AnimatedSprite2D")
-auto_bottom = null
-circle_scale = null
-circle_squash = null
-circle_width = null
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=2003574840]
 position = Vector2(0, -3)

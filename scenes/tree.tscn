@@ -5,6 +5,15 @@
 [ext_resource type="Texture2D" uid="uid://c125fogu4e04r" path="res://assets/nature/grass_tuft_tiny.png" id="2_ake3r"]
 [ext_resource type="Texture2D" uid="uid://bvd8e5e7vdde2" path="res://assets/nature/dirt_patch_small.png" id="2_viusy"]
 [ext_resource type="Texture2D" uid="uid://d2ku44qlkfkwa" path="res://assets/nature/tree_round_bigger.png" id="3_viusy"]
+[ext_resource type="Shader" uid="uid://lk8dvp1eox6o" path="res://shader/tree_sway.gdshader" id="5_18mvg"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_jgklr"]
+shader = ExtResource("5_18mvg")
+shader_parameter/sway_px = 1.5
+shader_parameter/speed = 1.1
+shader_parameter/flutter_px = 0.6
+shader_parameter/flutter_speed = 3.2
+shader_parameter/still_part = 0.3
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_jgklr"]
 size = Vector2(10, 1)
@@ -19,10 +28,6 @@ script = ExtResource("1_viusy")
 position = Vector2(0, -2)
 script = ExtResource("1_vplca")
 source = NodePath("../Sprite")
-auto_bottom = null
-circle_scale = null
-circle_squash = null
-circle_width = null
 
 [node name="GrassTuftTiny2" type="Sprite2D" parent="." unique_id=1510314314]
 z_index = -1
@@ -36,6 +41,7 @@ position = Vector2(0, -2)
 texture = ExtResource("2_viusy")
 
 [node name="Sprite" type="Sprite2D" parent="." unique_id=696202017]
+material = SubResource("ShaderMaterial_jgklr")
 position = Vector2(2, -34)
 texture = ExtResource("3_viusy")
 

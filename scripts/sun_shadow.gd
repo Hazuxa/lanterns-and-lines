@@ -73,6 +73,8 @@ func _ready() -> void:
 		return
 	host = get_parent() as Node2D
 	_anchor = position
+	if source and source.material:
+		material = source.material     # the shadow sways with the tree
 	var r := _used_rect()                  # visible part of the picture, in host space
 	if auto_bottom and r.size != Vector2.ZERO:
 		_anchor.y = r.end.y

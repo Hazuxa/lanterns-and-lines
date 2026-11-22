@@ -13,6 +13,8 @@ var layer: Node = null
 var _tex: ImageTexture
 var _anchor := Vector2.ZERO
 var _blob: Sprite2D
+var _img_cache := {}          # texture -> Image (reading pictures from the GPU is slow, so do it once)
+var _last_sig := ""           # skip rebuilding the silhouette when nothing changed
 
 
 # ---------- soft "vignette" look ----------
@@ -148,11 +150,16 @@ func _part(n: Node2D) -> Dictionary:
 		fr = s.frame
 	if tex == null:
 		return {}
-	var img := tex.get_image()
+	var img: Image = _img_cache.get(tex)
 	if img == null:
-		return {}
-	if img.is_compressed():
-		img.decompress()
+		img = tex.get_image()
+		if img == null:
+			return {}
+		if img.is_compressed():
+			img.decompress()
+		img.convert(Image.FORMAT_RGBA8)
+		_img_cache[tex] = img
+	img = img.duplicate()
 	if hf > 1 or vf > 1:
 		@warning_ignore("integer_division")
 		var fw := img.get_width() / hf
@@ -172,6 +179,20 @@ func _part(n: Node2D) -> Dictionary:
 
 
 func _build_silhouette() -> void:
+	# quick check: same frames, same places, same flips as last time? then keep the old picture
+	var sig := ""
+	for n in parts:
+		if n == null or not n.visible:
+			continue
+		var t: Texture2D = null
+		if n is AnimatedSprite2D and (n as AnimatedSprite2D).sprite_frames:
+			t = (n as AnimatedSprite2D).sprite_frames.get_frame_texture((n as AnimatedSprite2D).animation, (n as AnimatedSprite2D).frame)
+		elif n is Sprite2D:
+			t = (n as Sprite2D).texture
+		sig += "%d|%s|%s|%s;" % [t.get_instance_id() if t else 0, str(n.position.round()), str(n.get("flip_h")), str(n.scale)]
+	if sig == _last_sig and texture != null:
+		return
+	_last_sig = sig
 	var items: Array = []
 	var rect := Rect2()
 	for n in parts:
