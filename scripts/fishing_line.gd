@@ -1,104 +1,115 @@
 extends Node2D
-## A small physics rope that hangs from the rod tip and swings when you move.
-## The player script sets `anchor` and `line_scale` every frame.
+## The fishing line that hangs from the rod tip (a little rope that swings).
+## player.gd sets `anchor` (rod tip, global) and `line_scale` every frame.
 
-@export var segments := 7            # more = longer line
-@export var segment_length := 2.0    # pixels per segment (before scaling)
-@export var gravity := 400.0         # how hard it pulls down
-@export var damping := 0.95          # lower = calmer, higher = swingier
-@export var substeps := 3            # more = smoother (a little more CPU)
-@export var max_step := 2.0          # max pixels a point can move per substep
+@export var segments := 5               # how many pieces the rope has
+@export var segment_length := 1.5       # length of each piece (pixels)
+@export var gravity := 400.0
+@export var damping := 0.95             # lower = swings less
+@export var substeps := 3               # more = smoother, steadier rope
+@export var max_step := 2.0             # how far the anchor may jump per substep (stops "pops")
 @export var line_color := Color("b0bed6")
 @export var show_bobber := true
-@export var line_scale := 0.7        # match your rod's scale
 
-var anchor := Vector2.ZERO
-var _last_anchor := Vector2.ZERO
-var _pts: Array[Vector2] = []
-var _prev: Array[Vector2] = []
+var anchor := Vector2.ZERO              # rod tip (global) - set by player.gd
+var line_scale := 1.0                   # follows the rod's scale
 
-
-func _seg_len() -> float:
-	return segment_length * line_scale
+var _pts: Array[Vector2] = []           # rope points (global)
+var _old: Array[Vector2] = []
+var _anchor_now := Vector2.ZERO
+var _resting := false                   # rope has stopped swinging -> skip work until something moves
 
 
+func _ready() -> void:
+	snap_to(anchor)
+
+
+## put the whole rope straight down from `pos` (no swinging)
 func snap_to(pos: Vector2) -> void:
-	anchor = pos
-	_last_anchor = pos
+	_resting = false
 	_pts.clear()
-	_prev.clear()
-	for i in segments:
-		var p := pos + Vector2(0, i * _seg_len())
+	_old.clear()
+	for i in segments + 1:
+		var p := pos + Vector2(0, i * segment_length * line_scale)
 		_pts.append(p)
-		_prev.append(p)
+		_old.append(p)
+	_anchor_now = pos
 
 
-## Flip the whole rope around a vertical line (used when the player turns).
+## mirror the rope left/right around x (used when the player turns around)
 func mirror_around(x: float) -> void:
+	_resting = false
 	for i in _pts.size():
-		var p := _pts[i]
-		p.x = 2.0 * x - p.x
-		_pts[i] = p
-		var q := _prev[i]
-		q.x = 2.0 * x - q.x
-		_prev[i] = q
-	_last_anchor.x = 2.0 * x - _last_anchor.x
+		_pts[i].x = 2.0 * x - _pts[i].x
+		_old[i].x = 2.0 * x - _old[i].x
+	_anchor_now.x = 2.0 * x - _anchor_now.x
 
 
-## Move the whole rope without changing its shape (used when equipping).
+## move the whole rope by an offset (used when switching rods on/off)
 func shift_by(offset: Vector2) -> void:
+	_resting = false
 	for i in _pts.size():
-		_pts[i] = _pts[i] + offset
-		_prev[i] = _prev[i] + offset
-	_last_anchor += offset
+		_pts[i] += offset
+		_old[i] += offset
+	_anchor_now += offset
 
 
 func _physics_process(delta: float) -> void:
-	if _pts.size() != segments:
+	# OPTIMIZATION: hidden (line is cast out) -> nothing to do
+	if not visible:
+		return
+	if _pts.size() != segments + 1:
 		snap_to(anchor)
+		_resting = false
+	# OPTIMIZATION: rope at rest and the rod tip didn't move -> skip this frame
+	if _resting and anchor.distance_squared_to(_anchor_now) < 0.0001:
+		return
+	_resting = false
 	var dt := delta / substeps
+	var seg := segment_length * line_scale
 	for s in substeps:
-		# slide the top of the rope smoothly toward the rod tip
-		var a := _last_anchor.lerp(anchor, float(s + 1) / substeps)
-		_step(dt, a)
-	_last_anchor = anchor
+		# move the anchor toward the rod tip a little at a time (smooth, no pops)
+		_anchor_now += (anchor - _anchor_now).limit_length(max_step)
+		# verlet: keep moving + gravity
+		for i in range(1, _pts.size()):
+			var p := _pts[i]
+			var v := (p - _old[i]) * damping
+			_old[i] = p
+			_pts[i] = p + v + Vector2(0, gravity) * dt * dt
+		_pts[0] = _anchor_now
+		_old[0] = _anchor_now
+		# keep each piece the right length
+		for _k in 3:
+			for i in range(_pts.size() - 1):
+				var a := _pts[i]
+				var b := _pts[i + 1]
+				var d := b - a
+				var l := d.length()
+				if l < 0.0001:
+					continue
+				var diff := (l - seg) / l
+				if i == 0:
+					_pts[i + 1] = b - d * diff
+				else:
+					_pts[i] = a + d * diff * 0.5
+					_pts[i + 1] = b - d * diff * 0.5
+	# is the rope still moving?
+	var moving := 0.0
+	for i in _pts.size():
+		moving = maxf(moving, _pts[i].distance_squared_to(_old[i]))
+	if moving < 0.00005 and anchor.distance_squared_to(_anchor_now) < 0.0001:
+		_resting = true
 	queue_redraw()
-
-
-func _step(dt: float, a: Vector2) -> void:
-	# 1) move every free point by its velocity + gravity (verlet)
-	for i in range(1, segments):
-		var vel := ((_pts[i] - _prev[i]) * damping).limit_length(max_step)
-		_prev[i] = _pts[i]
-		_pts[i] = _pts[i] + vel + Vector2(0, gravity * line_scale) * dt * dt
-	_pts[0] = a
-	_prev[0] = a
-
-	# 2) keep every segment the right length
-	var seg := _seg_len()
-	for _iter in 8:
-		_pts[0] = a
-		for i in range(segments - 1):
-			var d := _pts[i + 1] - _pts[i]
-			var dist := d.length()
-			if dist == 0.0:
-				continue
-			var diff := (dist - seg) / dist
-			if i == 0:
-				_pts[i + 1] = _pts[i + 1] - d * diff
-			else:
-				_pts[i] = _pts[i] + d * diff * 0.5
-				_pts[i + 1] = _pts[i + 1] - d * diff * 0.5
 
 
 func _draw() -> void:
 	if _pts.size() < 2:
 		return
-	for i in range(segments - 1):
+	# points are kept in world space; draw them relative to this node
+	# (the node stays a normal child of the player, so it sorts with him behind trees)
+	for i in range(_pts.size() - 1):
 		draw_line(to_local(_pts[i]), to_local(_pts[i + 1]), line_color, 1.0)
 	if show_bobber:
-		var e := to_local(_pts[segments - 1])
-		var w := maxf(1.0, roundf(2.0 * line_scale))
-		var h := maxf(1.0, roundf(1.0 * line_scale))
-		draw_rect(Rect2(e + Vector2(-w / 2.0, 0), Vector2(w, h)), Color("e63c3c"))
-		draw_rect(Rect2(e + Vector2(-w / 2.0, h), Vector2(w, h)), Color("fafafa"))
+		var e: Vector2 = to_local(_pts[_pts.size() - 1]).round()
+		draw_rect(Rect2(e + Vector2(-1, 0), Vector2(2, 1)), Color(0.93, 0.3, 0.26))
+		draw_rect(Rect2(e + Vector2(-1, 1), Vector2(2, 1)), Color(0.98, 0.98, 0.94))

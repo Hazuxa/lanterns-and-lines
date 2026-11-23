@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="Laterns & Lines"
-run/main_scene="uid://boe8gkwlr3tx4"
+run/main_scene="uid://ci2tsp5w0pfex"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icon.svg"
 
@@ -22,7 +22,6 @@ window/size/viewport_height=270
 window/size/window_width_override=1440
 window/size/window_height_override=810
 window/stretch/mode="canvas_items"
-window/stretch/aspect="expand"
 window/stretch/scale_mode="integer"
 
 [input]

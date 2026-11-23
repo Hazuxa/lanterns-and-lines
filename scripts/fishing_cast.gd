@@ -44,11 +44,25 @@ var _rot_goal := 0.0
 var _off_v := Vector2.ZERO
 var _off_goal := Vector2.ZERO
 var _splash: CPUParticles2D
+var _settled := true                    # idle and the rod has stopped moving
+var _pieces_shown := false
+var _bar_visible := false
+var _world: Node2D                      # draws the bobber end (last piece of line + bobber)
+var _pieces: Array[Node2D] = []         # the line is cut in pieces, each sorted on its own spot
+const PIECES := 4
 
 
 func _ready() -> void:
 	player = get_parent()
-	z_index = 1
+	# the line is split into a few pieces; each piece sits on its own spot on the ground in Objects,
+	# so a tree covers only the part of the line that is really behind it
+	for k in PIECES:
+		var n := Node2D.new()
+		n.name = "FishingLine%d" % k
+		n.draw.connect(_draw_piece.bind(k))
+		player.get_parent().add_child.call_deferred(n)
+		_pieces.append(n)
+	_world = _pieces[PIECES - 1]
 	var img := Image.create(1, 1, false, Image.FORMAT_RGBA8)
 	img.set_pixel(0, 0, Color.WHITE)
 	_splash = CPUParticles2D.new()
@@ -76,6 +90,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		if state == IDLE and player.rod_equipped:
 			state = CHARGING
 			busy = true
+			_settled = false
 			_power = 0.0
 			_power_dir = 1.0
 			_face_mouse()
@@ -107,6 +122,9 @@ func _reel_in() -> void:
 
 
 func _process(delta: float) -> void:
+	# OPTIMIZATION: idle + rod already at rest -> skip everything this frame
+	if state == IDLE and _settled:
+		return
 	_time += delta
 	var tip: Vector2 = player.line.anchor
 	var f := _flip()
@@ -162,7 +180,30 @@ func _process(delta: float) -> void:
 	_off_v *= exp(-spring_damp * delta)
 	rod_offset += _off_v * delta
 	player.rod_held.rotation = _rot
-	queue_redraw()
+
+	# the power bar only needs redrawing while charging (and once more to clear it)
+	if state == CHARGING or _bar_visible:
+		queue_redraw()
+		_bar_visible = state == CHARGING
+
+	# line pieces: only while the line is out; cleared once when it comes back
+	var line_out := not (state == IDLE or state == CHARGING)
+	if line_out or _pieces_shown:
+		var g_end := _ground_spot() if line_out else player.global_position
+		for k in _pieces.size():
+			var n: Node2D = _pieces[k]
+			if is_instance_valid(n) and n.is_inside_tree():
+				n.global_position = player.global_position.lerp(g_end, (k + 0.5) / PIECES)
+				n.queue_redraw()
+		_pieces_shown = line_out
+
+	# remember when everything has come to rest, so idle frames can be skipped
+	_settled = state == IDLE and absf(_rot) < 0.002 and absf(_rot_v) < 0.01 \
+			and rod_offset.length() < 0.05 and _off_v.length() < 0.05 and not _pieces_shown and not _bar_visible
+	if _settled:
+		_rot = 0.0
+		rod_offset = Vector2.ZERO
+		player.rod_held.rotation = 0.0
 
 
 func _land() -> void:
@@ -179,50 +220,66 @@ func _land() -> void:
 func _draw() -> void:
 	if state == CHARGING:
 		_draw_bar()
+
+
+## Line + bobber are drawn on a separate node that lives in Objects (Y-sorted) and sits on the
+## bobber's spot on the ground -> a tree in front of the bobber covers it, like real depth.
+func _draw_piece(k: int) -> void:
+	var w: Node2D = _pieces[k]
+	if state == IDLE or state == CHARGING:
 		return
-	if state == IDLE:
-		return
-	var tip: Vector2 = to_local(player.line.anchor)
-	var b := to_local(_bobber)
+	var tip: Vector2 = w.to_local(player.line.anchor)
+	var b := w.to_local(_bobber)
 	var since := _time - _land_time
 	if state == OUT:
 		if _in_water:
 			b.y += roundf(sin(since * 3.5) * 0.7)
 		else:
-			b.y -= roundf(absf(sin(since * 14.0)) * 3.0 * exp(-since * 6.0))   # little bounce on land
+			b.y -= roundf(absf(sin(since * 14.0)) * 3.0 * exp(-since * 6.0))
 
-	# shadow of the bobber on the ground while it flies (gives it height)
-	if state == FLYING:
-		var g := to_local(_from_ground.lerp(_target, 1.0 - pow(1.0 - minf(_t, 1.0), 2.0)))
-		draw_rect(Rect2(g.round() + Vector2(-1, 0), Vector2(3, 1)), Color(0, 0, 0, 0.25))
-
-	# the line: almost straight while flying, sags when the bobber is resting, tight when reeling
+	# this piece's part of the line
 	var sag := 2.0
 	if state == OUT:
 		sag = 9.0
 	elif state == REELING:
 		sag = 1.0
-	var prev := tip
-	for i in range(1, 15):
-		var t := i / 14.0
+	var steps := 16
+	var i0 := int(float(k) / PIECES * steps)
+	var i1 := int(float(k + 1) / PIECES * steps)
+	var prev := tip.lerp(b, float(i0) / steps) + Vector2(0, sin(float(i0) / steps * PI) * sag)
+	for i in range(i0 + 1, i1 + 1):
+		var t := float(i) / steps
 		var p := tip.lerp(b, t)
 		p.y += sin(t * PI) * sag
-		draw_line(prev, p, Color(line_color, 0.9), 1.0)
+		w.draw_line(prev, p, Color(line_color, 0.9), 1.0)
 		prev = p
 
-	# ripples ONLY when it's sitting in water
+	if k != PIECES - 1:
+		return
+	# the last piece also draws the bobber and what's around it
+	if state == FLYING:
+		var g := w.to_local(_ground_spot())
+		w.draw_rect(Rect2(g.round() + Vector2(-1, 0), Vector2(3, 1)), Color(0, 0, 0, 0.25))
 	if state == OUT and _in_water:
-		for k in 2:
-			var a := fmod(since * 0.7 + k * 0.5, 1.0)
+		for r_i in 2:
+			var a := fmod(since * 0.7 + r_i * 0.5, 1.0)
 			var r := 2.0 + a * 6.0
-			_pixel_ellipse(to_local(_target) + Vector2(0, 1), r, r * 0.4, Color(0.85, 0.96, 0.95, (1.0 - a) * 0.7))
-
-	# small bobber, no outline: red top, white bottom (bottom hides under the water)
+			_pixel_ellipse(w, w.to_local(_target) + Vector2(0, 1), r, r * 0.4, Color(0.85, 0.96, 0.95, (1.0 - a) * 0.7))
 	var o := b.round() + Vector2(-1, -2)
-	draw_rect(Rect2(o, Vector2(2, 1)), Color(0.93, 0.3, 0.26))
-	draw_rect(Rect2(o + Vector2(0, 1), Vector2(2, 1)), Color(0.98, 0.98, 0.94))
+	w.draw_rect(Rect2(o, Vector2(2, 1)), Color(0.93, 0.3, 0.26))
+	w.draw_rect(Rect2(o + Vector2(0, 1), Vector2(2, 1)), Color(0.98, 0.98, 0.94))
 	if not (state == OUT and _in_water):
-		draw_rect(Rect2(o + Vector2(0, 2), Vector2(2, 1)), Color(0.98, 0.98, 0.94))
+		w.draw_rect(Rect2(o + Vector2(0, 2), Vector2(2, 1)), Color(0.98, 0.98, 0.94))
+
+
+## where the bobber is ON THE GROUND (used for sorting and its shadow)
+func _ground_spot() -> Vector2:
+	match state:
+		FLYING:
+			return _from_ground.lerp(_target, 1.0 - pow(1.0 - minf(_t, 1.0), 2.0))
+		REELING:
+			return _target.lerp(player.global_position, minf(_t, 1.0))
+	return _target
 
 
 func _draw_bar() -> void:
@@ -235,7 +292,7 @@ func _draw_bar() -> void:
 	draw_rect(Rect2(p + Vector2(1, 1), Vector2(roundf(12.0 * _power), 1)), col)
 
 
-func _pixel_ellipse(c: Vector2, rx: float, ry: float, col: Color) -> void:
+func _pixel_ellipse(w: CanvasItem, c: Vector2, rx: float, ry: float, col: Color) -> void:
 	var done := {}
 	var steps := int(maxf(10.0, rx * 6.0))
 	for i in steps:
@@ -243,7 +300,7 @@ func _pixel_ellipse(c: Vector2, rx: float, ry: float, col: Color) -> void:
 		var p := Vector2(roundf(c.x + cos(a) * rx), roundf(c.y + sin(a) * ry))
 		if not done.has(p):
 			done[p] = true
-			draw_rect(Rect2(p, Vector2.ONE), col)
+			w.draw_rect(Rect2(p, Vector2.ONE), col)
 
 
 func _is_water(pos: Vector2) -> bool:
@@ -271,3 +328,9 @@ func _face_mouse() -> void:
 
 func _flip() -> float:
 	return -1.0 if player.side == "left" else 1.0
+
+
+func _exit_tree() -> void:
+	for n in _pieces:
+		if is_instance_valid(n):
+			n.queue_free()

@@ -338,6 +338,7 @@ size = Vector2(8, 4)
 script = ExtResource("1_d2wvv")
 
 [node name="FishingCast" type="Node2D" parent="." unique_id=1593915922]
+z_index = 1
 script = ExtResource("2_fulsm")
 
 [node name="PlayerShadow" type="Sprite2D" parent="." unique_id=38738093 node_paths=PackedStringArray("parts")]
@@ -362,9 +363,6 @@ script = ExtResource("16_qfm1y")
 [node name="FishingLine" type="Node2D" parent="." unique_id=153363578]
 position = Vector2(5, -15)
 script = ExtResource("3_f1ej7")
-segments = 5
-segment_length = 1.5
-gravity = 300.0
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=551957246]
 position = Vector2(0, -1.1000061)
@@ -384,5 +382,5 @@ shape = SubResource("RectangleShape2D_i3pqv")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=106286705]
 position = Vector2(-1, 3.899994)
-zoom = Vector2(2, 2)
+zoom = Vector2(1.5, 1.5)
 position_smoothing_enabled = true

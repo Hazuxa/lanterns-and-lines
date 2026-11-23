@@ -1,26 +1,33 @@
 shader_type canvas_item;
-// Wind sway for trees (and their shadows). The Wind node controls how strong it is.
+// Tree wind (optimized): the crown bends gently, the trunk never moves.
+// Heavy math runs ONCE per tree (vertex), each pixel only does a tiny bit of work.
 
-global uniform float wind_strength;   // set by wind.gd (changes with time of day + gusts)
-global uniform float wind_time;       // set by wind.gd (keeps the sway smooth when speed changes)
+global uniform float wind_strength;
+global uniform float wind_time;
 
-uniform float sway_px = 1.5;        // sway at normal wind (pixels)
-uniform float flutter_px = 0.6;     // leaf ripple at normal wind (pixels)
-uniform float still_part = 0.3;     // bottom part that never moves (the trunk)
+uniform float leaves_start = 0.35;   // where the leaves begin, from the bottom (0-1)
+uniform float bend_px = 1.5;         // how far the top of the crown bends (pixels)
+uniform float bend_speed = 0.6;      // speed of the sway
+uniform float wave_px = 0.3;         // soft wave across the crown (0 = off)
+uniform float wave_speed = 1.0;
+uniform float breathe_px = 0.3;      // crown gently rising/settling (pixels)
 
-varying float phase;
 varying vec4 tint;
+varying float v_sway;      // these are worked out once per tree, in vertex()
+varying float v_breathe;
+varying float v_wave_t;
 
 void vertex() {
 	tint = COLOR;
-	phase = MODEL_MATRIX[3].x * 0.071 + MODEL_MATRIX[3].y * 0.037;
+	float t = wind_time + MODEL_MATRIX[3].x * 0.071 + MODEL_MATRIX[3].y * 0.037;
+	v_sway = (sin(t * bend_speed) + 0.35 * sin(t * bend_speed * 2.3 + 1.0)) * bend_px * wind_strength;
+	v_breathe = (0.5 + 0.5 * sin(t * bend_speed * 1.3 + 2.0)) * breathe_px * wind_strength;
+	v_wave_t = t * wave_speed;
 }
 
 void fragment() {
-	float h = 1.0 - UV.y;
-	float bend = smoothstep(still_part, 1.0, h);
-	float wave = sin(wind_time + phase) * sway_px * wind_strength * bend * bend
-	           + sin(wind_time * 2.9 + UV.y * 18.0 + phase * 2.0) * flutter_px * wind_strength * bend;
-	vec4 c = texture(TEXTURE, UV - vec2(wave * TEXTURE_PIXEL_SIZE.x, 0.0));
-	COLOR = c * tint;
+	float m = clamp((1.0 - UV.y - leaves_start) / (1.0 - leaves_start), 0.0, 1.0);
+	float wave = sin(v_wave_t - UV.x * 6.0) * wave_px * wind_strength;
+	vec2 d = vec2(v_sway * m * m + wave * m, -v_breathe * m);
+	COLOR = texture(TEXTURE, UV - d * TEXTURE_PIXEL_SIZE) * tint;
 }

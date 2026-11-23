@@ -9,11 +9,12 @@
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_jgklr"]
 shader = ExtResource("5_18mvg")
-shader_parameter/sway_px = 1.5
-shader_parameter/speed = 1.1
-shader_parameter/flutter_px = 0.6
-shader_parameter/flutter_speed = 3.2
-shader_parameter/still_part = 0.3
+shader_parameter/leaves_start = 0.35
+shader_parameter/bend_px = 2.5
+shader_parameter/bend_speed = 0.9
+shader_parameter/wave_px = 0.8
+shader_parameter/wave_speed = 1.6
+shader_parameter/breathe_px = 0.6
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_jgklr"]
 size = Vector2(10, 1)
