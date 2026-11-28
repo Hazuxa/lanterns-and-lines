@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cj6731nkmmlbb"
-path="res://.godot/imported/tall_grass_dry.png-a0375b9bcaa73716eee34aeca4735cbe.ctex"
+uid="uid://bnor0xo45v40f"
+path="res://.godot/imported/grass_tuft_big_rustle_8f.png-9236310dd145075e9f909beb63faedf2.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/nature/tall_grass/tall_grass_dry.png"
-dest_files=["res://.godot/imported/tall_grass_dry.png-a0375b9bcaa73716eee34aeca4735cbe.ctex"]
+source_file="res://assets/nature/grass_tuft_big_rustle_8f.png"
+dest_files=["res://.godot/imported/grass_tuft_big_rustle_8f.png-9236310dd145075e9f909beb63faedf2.ctex"]
 
 [params]
 

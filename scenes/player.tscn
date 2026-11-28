@@ -18,6 +18,8 @@
 [ext_resource type="Texture2D" uid="uid://mli845mol6bh" path="res://assets/characters/MC/yawn.png" id="11_i4ail"]
 [ext_resource type="Texture2D" uid="uid://c6yj4rri8dxwq" path="res://assets/fishing rods/01_bamboo_rod/01_bamboo_rod_held.png" id="13_jej6c"]
 [ext_resource type="Script" uid="uid://d2k6dggs45fse" path="res://scripts/water_fx.gd" id="16_qfm1y"]
+[ext_resource type="Shader" uid="uid://bf0gbj6pwtkqf" path="res://scenes/cloud_shadows.gdshader" id="19_4r5pv"]
+[ext_resource type="Script" uid="uid://cn0lixiuvd7q4" path="res://scripts/cloud_shadows.gd" id="20_60mlk"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_a38lo"]
 atlas = ExtResource("2_3v2ag")
@@ -334,6 +336,28 @@ animations = [{
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_i3pqv"]
 size = Vector2(8, 4)
 
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_i4ail"]
+fractal_octaves = 2
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_60mlk"]
+width = 256
+height = 256
+noise = SubResource("FastNoiseLite_i4ail")
+seamless = true
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_2degm"]
+shader = ExtResource("19_4r5pv")
+shader_parameter/noise = SubResource("NoiseTexture2D_60mlk")
+shader_parameter/scale = 0.001
+shader_parameter/direction = Vector2(1, 0.35)
+shader_parameter/speed = 5.0
+shader_parameter/coverage = 0.35
+shader_parameter/softness = 0.1
+shader_parameter/day_shadow = Vector3(0.78, 0.81, 0.92)
+shader_parameter/night_shadow = Vector3(0.72, 0.76, 0.95)
+shader_parameter/night_amount = 0.3
+shader_parameter/night = 0.0
+
 [node name="Player" type="CharacterBody2D" unique_id=1318159996]
 script = ExtResource("1_d2wvv")
 
@@ -384,3 +408,7 @@ shape = SubResource("RectangleShape2D_i3pqv")
 position = Vector2(-1, 3.899994)
 zoom = Vector2(1.5, 1.5)
 position_smoothing_enabled = true
+
+[node name="CloudShadows" type="ColorRect" parent="Camera2D" unique_id=1228699404]
+material = SubResource("ShaderMaterial_2degm")
+script = ExtResource("20_60mlk")

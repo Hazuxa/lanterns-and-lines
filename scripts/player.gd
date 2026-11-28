@@ -23,6 +23,10 @@ const FOLLOW_SPEED := 9.0    # how tightly it follows him (lower = more lag)
 const TILT_AMOUNT := 0.18    # how much it leans when running (radians)
 const TILT_SPEED := 8.0      # how fast the lean changes
 
+# ---------- grass push feel ----------                                     # NEW
+const GRASS_SPRING := 60.0   # how fast the grass sways back                   # NEW
+const GRASS_DAMP := 0.02     # bounce: higher = more wobble, lower = settles fast  # NEW
+
 @onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var rod_back: Sprite2D = $RodBack
 @onready var rod_held: Sprite2D = $RodHeld
@@ -45,6 +49,10 @@ var ground: TileMapLayer = null
 var in_water := false
 var sink := 0.0
 
+var grass_push := Vector2.ZERO       # NEW
+var grass_push_vel := Vector2.ZERO   # NEW
+
+
 func _ready() -> void:
 	rod_back_base = rod_back.position   # remember where you placed them in the editor
 	rod_held_base = rod_held.position
@@ -62,6 +70,7 @@ func _ready() -> void:
 	rod_held.material = mat      # the rods get cut at the water line too
 	rod_back.material = mat
 
+
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("equip") and not fishing.busy:
 		var old_anchor: Vector2 = line.anchor
@@ -74,13 +83,14 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _physics_process(delta: float) -> void:
-
 	var dir := Input.get_vector("move_left", "move_right", "move_up", "move_down")
 	if fishing.busy:
 		dir = Vector2.ZERO
 	in_water = _is_water()
 	velocity = dir * SPEED * (WATER_SLOW if in_water else 1.0)
 	move_and_slide()
+
+	_update_grass_push(delta)   # NEW
 
 	if dir != Vector2.ZERO:
 		_walk(dir)
@@ -100,6 +110,16 @@ func _physics_process(delta: float) -> void:
 	water_fx.move_dir = dir
 
 	_sync_rod(delta)
+
+
+# NEW: tells the grass shader where he is and how he's moving (springy, so grass sways back)
+func _update_grass_push(delta: float) -> void:
+	var target := velocity / SPEED
+	grass_push_vel += (target - grass_push) * GRASS_SPRING * delta
+	grass_push_vel *= pow(GRASS_DAMP, delta)
+	grass_push += grass_push_vel * delta
+	RenderingServer.global_shader_parameter_set("player_pos", global_position)
+	RenderingServer.global_shader_parameter_set("grass_push", grass_push)
 
 
 func _is_water() -> bool:
@@ -131,12 +151,6 @@ func _stand_still(delta: float) -> void:
 		idle_timer = 0.0
 		playing_special = true
 		sprite.play(_pick_special_idle())
-
-	idle_timer += delta
-	if idle_timer >= IDLE_DELAY:
-		idle_timer = 0.0
-		playing_special = true
-		sprite.play(SPECIAL_IDLES.pick_random())
 
 
 func _on_animation_finished() -> void:
@@ -200,8 +214,9 @@ func _sync_rod(delta: float) -> void:
 func set_rod(held_tex: Texture2D, back_tex: Texture2D) -> void:
 	rod_held.texture = held_tex
 	rod_back.texture = back_tex
-## picks a special idle that fits the time of day
 
+
+## picks a special idle that fits the time of day
 func _pick_special_idle() -> String:
 	var options := ["blink", "look_around"]          # these can happen any time
 	var dn := get_tree().get_first_node_in_group("day_night")

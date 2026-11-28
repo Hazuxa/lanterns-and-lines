@@ -85,3 +85,27 @@ wind_time={
 "type": "float",
 "value": 0.0
 }
+player_pos={
+"type": "vec2",
+"value": Vector2(0, 0)
+}
+grass_push={
+"type": "vec2",
+"value": Vector2(0, 0)
+}
+ff_light0={
+"type": "vec3",
+"value": Vector3(0, 0, 0)
+}
+ff_light1={
+"type": "vec3",
+"value": Vector3(0, 0, 0)
+}
+ff_light2={
+"type": "vec3",
+"value": Vector3(0, 0, 0)
+}
+ff_light3={
+"type": "vec3",
+"value": Vector3(0, 0, 0)
+}

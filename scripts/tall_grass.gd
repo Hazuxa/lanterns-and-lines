@@ -1,13 +1,15 @@
 extends Area2D
-## Tall grass that sways and rustles when the player walks through.
+## Tall grass that rustles naturally when the player walks through (the shader does the bending).
+## A rustle ALWAYS plays to its last frame - new rustles wait for it instead of cutting it off.
 ## At NIGHT, rustling the grass has a chance to make fireflies pop out of it.
 ## Scene:
 ##   TallGrass (Area2D, this script)
 ##   |- SunShadow / CollisionShape2D
-##   |- AnimatedSprite2D   "idle" (loop) + "rustle" (no loop)
+##   |- AnimatedSprite2D   "idle" (loop) + "rustle" (no loop)   <- has the grass shader material
 
 @export_group("Rustle")
-@export var rustle_again_every := 0.35     # while walking inside, rustle again this often
+@export var step_distance := 6.0           # rustle again after he walks this many px inside
+@export var speed_variation := 0.12        # each rustle plays a bit faster/slower (0.12 = ±12%)
 
 @export_group("Fireflies at night")
 @export_range(0.0, 1.0) var firefly_chance := 0.25  # chance per rustle at night
@@ -17,51 +19,70 @@ extends Area2D
 
 @onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
 
-var _player: Node2D = null
-var _rustle_timer := 0.0
+var _player: CharacterBody2D = null
+var _last_pos := Vector2.ZERO
 var _firefly_timer := 0.0
+var _queued := false                       # another rustle is waiting for this one to finish
+var _queued_strength := 1.0
 
 
 func _ready() -> void:
 	sprite.play("idle")
 	sprite.frame = randi() % sprite.sprite_frames.get_frame_count("idle")
+	sprite.speed_scale = randf_range(0.9, 1.1)          # idle sway not in sync with neighbours
 	body_entered.connect(_on_body_entered)
 	body_exited.connect(_on_body_exited)
 	sprite.animation_finished.connect(_on_animation_finished)
-	set_process(false)                      # only needs to run while the player is inside
+	set_process(false)                      # only runs while the player is inside
 	_warm_up()
 
 
 func _on_body_entered(body: Node) -> void:
 	if body is CharacterBody2D:
 		_player = body
+		_last_pos = _player.global_position
 		set_process(true)
-		_rustle()
+		_rustle(1.0)
 
 
 func _on_body_exited(body: Node) -> void:
 	if body == _player:
 		_player = null
 		set_process(false)
-		_rustle()
+		_rustle(0.85)                       # softer one as he leaves (waits if one is playing)
 
 
-func _process(delta: float) -> void:
-	_rustle_timer -= delta
-	# keep rustling while he walks around inside the grass
-	if _player and (_player as CharacterBody2D).velocity.length() > 5.0 and _rustle_timer <= 0.0:
-		_rustle()
+func _process(_delta: float) -> void:
+	# rustle by STEPS: standing still = no new rustle, walking = keeps rustling
+	if _player and _player.global_position.distance_to(_last_pos) >= step_distance:
+		_last_pos = _player.global_position
+		_rustle(1.0)
 
 
-func _rustle() -> void:
-	_rustle_timer = rustle_again_every
+func _rustle(strength: float) -> void:
+	if sprite.animation == "rustle" and sprite.is_playing():
+		_queued = true                      # never cut it off - play again right after it ends
+		_queued_strength = strength
+		return
+	_start_rustle(strength)
+
+
+func _start_rustle(strength: float) -> void:
+	sprite.speed_scale = strength * randf_range(1.0 - speed_variation, 1.0 + speed_variation)
 	sprite.play("rustle")
 	_maybe_fireflies()
 
 
 func _on_animation_finished() -> void:
-	if sprite.animation == "rustle":
+	if sprite.animation != "rustle":
+		return
+	if _queued:
+		_queued = false
+		_start_rustle(_queued_strength)     # he kept walking: flow straight into the next rustle
+	else:
 		sprite.play("idle")
+		sprite.frame = randi() % sprite.sprite_frames.get_frame_count("idle")
+		sprite.speed_scale = randf_range(0.9, 1.1)
 
 
 func _maybe_fireflies() -> void:
